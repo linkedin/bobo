@@ -24,6 +24,7 @@ public class BoboFacetIteratorTest extends TestCase
   public BoboFacetIteratorTest(String testName){
     super(testName);
     String confdir = System.getProperty("conf.dir");
+    if (confdir == null) confdir ="./resource";
     org.apache.log4j.PropertyConfigurator.configure(confdir+"/log4j.properties");
   }
   
