@@ -1,5 +1,3 @@
-package com.browseengine.bobo.test;
-
 /**
  * Bobo Browse Engine - High performance faceted/parametric search implementation 
  * that handles various types of semi-structured data.  Written in Java.
@@ -24,6 +22,8 @@ package com.browseengine.bobo.test;
  * please go to https://sourceforge.net/projects/bobo-browse/, or 
  * send mail to owner@browseengine.com.
  */
+
+package com.browseengine.bobo.test;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
