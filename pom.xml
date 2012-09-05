@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.linkedin.bobo</groupId>
     <artifactId>bobo-parent</artifactId>
-    <version>3.0.9</version>
+    <version>3.0.10-SNAPSHOT</version>
     <relativePath>bobo-parent/pom.xml</relativePath>
   </parent>
 
