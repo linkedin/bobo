@@ -29,8 +29,13 @@
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
-		<version>6</version>
+		<version>7</version>
 	</parent>
+    <scm>
+        <connection>scm:git:git@github.com:linkedin/bobo.git</connection>
+        <developerConnection>scm:git:git@github.com:linkedin/bobo.git</developerConnection>
+        <url>git@github.com:linkedin/bobo.git</url>
+    </scm>
 
 
 	<inceptionYear>2005</inceptionYear>
@@ -223,6 +228,19 @@
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -275,35 +293,35 @@
 		</snapshotRepository>
 	</distributionManagement>
 
-	<profiles>
-	            <profile>
-	                <id>release-sign-artifacts</id>
-	                <activation>
-	                    <property>
-	                        <name>performRelease</name>
-	                        <value>true</value>
-	                    </property>
-	                </activation>
-	                <build>
-	                    <plugins>
-	                        <plugin>
-	                            <groupId>org.apache.maven.plugins</groupId>
-	                            <artifactId>maven-gpg-plugin</artifactId>
-	                            <version>1.1</version>
-	                            <executions>
-	                                <execution>
-	                                    <id>sign-artifacts</id>
-	                                    <phase>verify</phase>
-	                                    <goals>
-	                                        <goal>sign</goal>
-	                                    </goals>
-	                                </execution>
-	                            </executions>
-	                        </plugin>
-	                    </plugins>
-	                </build>
-	            </profile>
-	        </profiles> 
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            </profile>
+    </profiles> 
 	
 
 </project>
