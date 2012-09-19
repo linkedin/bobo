@@ -23,9 +23,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.linkedin.bobo</groupId>
+    <groupId>com.browseengine.bobo</groupId>
     <artifactId>bobo-parent</artifactId>
-    <version>3.0.10-SNAPSHOT</version>
+    <version>3.0.8-SNAPSHOT</version>
     <relativePath>../bobo-parent/pom.xml</relativePath>
   </parent>
 
@@ -104,6 +104,7 @@
   
 
   <dependencies>
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>bobo-browse</artifactId>
@@ -117,10 +118,15 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
+      <version>20080701</version>
    </dependency>
+    
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
+
 </project>
