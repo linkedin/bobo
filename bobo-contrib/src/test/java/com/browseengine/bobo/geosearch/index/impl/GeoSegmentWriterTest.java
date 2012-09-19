@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 
@@ -63,9 +63,9 @@ public class GeoSegmentWriterTest {
     
     // can't use the spring bean, because herein we mock
     GeoSearchConfig config = new GeoSearchConfig();
-    IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
+    IGeoRecordSerializer<CartesianGeoRecord> geoRecordSerializer;
     
-    TreeSet<GeoRecord> treeSet;
+    TreeSet<CartesianGeoRecord> treeSet;
     GeoSegmentInfo info;
 
     IFieldNameFilterConverter fieldNameFilterConverter;
@@ -81,11 +81,11 @@ public class GeoSegmentWriterTest {
         
         config.setGeoFileExtension("gto");
         
-        treeSet = new TreeSet<GeoRecord>(new Comparator<GeoRecord>() {
+        treeSet = new TreeSet<CartesianGeoRecord>(new Comparator<CartesianGeoRecord>() {
 
             @Override
-            public int compare(GeoRecord o1, GeoRecord o2) {
-                return o1.lowOrder - o2.lowOrder;
+            public int compare(CartesianGeoRecord o1, CartesianGeoRecord o2) {
+                return (int) (o1.lowOrder - o2.lowOrder);
             }
         });
         
@@ -108,9 +108,9 @@ public class GeoSegmentWriterTest {
         for (int i=0; i<docsToAdd; i++) {
             long highOrder = 0;
             int lowOrder = i;
-            byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE; 
+            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE; 
             
-            GeoRecord record = new GeoRecord(highOrder, lowOrder, filterByte);
+            CartesianGeoRecord record = new CartesianGeoRecord(highOrder, lowOrder, filterByte);
             treeSet.add(record);
         }
         
@@ -124,9 +124,9 @@ public class GeoSegmentWriterTest {
         for (int i=0; i<docsToAdd; i++) {
             long highOrder = 0;
             int lowOrder = i;
-            byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE; 
+            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE; 
             
-            GeoRecord record = new GeoRecord(highOrder, lowOrder, filterByte);
+            CartesianGeoRecord record = new CartesianGeoRecord(highOrder, lowOrder, filterByte);
             treeSet.add(record);
         }
         
@@ -142,9 +142,9 @@ public class GeoSegmentWriterTest {
         for (int i=0; i<docsToAdd; i++) {
             long highOrder = 0;
             int lowOrder = i;
-            byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE; 
+            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE; 
             
-            GeoRecord record = new GeoRecord(highOrder, lowOrder, filterByte);
+            CartesianGeoRecord record = new CartesianGeoRecord(highOrder, lowOrder, filterByte);
             treeSet.add(record);
         }
         
@@ -208,7 +208,7 @@ public class GeoSegmentWriterTest {
                     
                     one(mockOutput).seek(with(any(Long.class)));
                     inSequence(outputSequence);
-                    one(geoRecordSerializer).writeGeoRecord(with(mockOutput), with(any(GeoRecord.class)), with(any(Integer.class)));
+                    one(geoRecordSerializer).writeGeoRecord(with(mockOutput), with(any(CartesianGeoRecord.class)), with(any(Integer.class)));
                     inSequence(outputSequence);
                 }
                 
@@ -219,7 +219,7 @@ public class GeoSegmentWriterTest {
         
         info.setGeoVersion(version);
         String fileName = config.getGeoFileName(info.getSegmentName());
-        GeoSegmentWriter<GeoRecord> bTree = new GeoSegmentWriter<GeoRecord>(treeSet, directory, 
+        GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(treeSet, directory, 
                 fileName, info, geoRecordSerializer);
         bTree.close();
         context.assertIsSatisfied();

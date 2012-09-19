@@ -26,6 +26,7 @@ import com.browseengine.bobo.geosearch.bo.IGeoRecord;
 public class IDGeoRecord implements IGeoRecord {
     public final long highOrder;
     public final int lowOrder;
+    //public final int lowOrder;
     
     public final byte[] id;
     

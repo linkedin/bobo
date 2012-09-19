@@ -25,25 +25,25 @@ import java.util.TreeSet;
 import org.springframework.stereotype.Component;
 
 import com.browseengine.bobo.geosearch.IGeoUtil;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 @Component
 public class GeoUtil implements IGeoUtil {
 
     @Override
-    public Iterator<GeoRecord> getGeoRecordIterator(Iterator<LatitudeLongitudeDocId> lldidIter) {
+    public Iterator<CartesianGeoRecord> getGeoRecordIterator(Iterator<LatitudeLongitudeDocId> lldidIter) {
         GeoConverter gc = new GeoConverter();
-        ArrayList<GeoRecord> grl = new ArrayList<GeoRecord>();
+        ArrayList<CartesianGeoRecord> grl = new ArrayList<CartesianGeoRecord>();
         while (lldidIter.hasNext()) {
-            grl.add(gc.toGeoRecord(null, null, lldidIter.next()));
+            grl.add(gc.toCartesianGeoRecord(lldidIter.next(), (byte)0));
         }
         return grl.iterator();
     }
 
     @Override
-    public TreeSet<GeoRecord> getBinaryTreeOrderedByBitMag(Iterator<GeoRecord> grIter) {
-        TreeSet<GeoRecord> tree = getBinaryTreeOrderedByBitMag();
+    public TreeSet<CartesianGeoRecord> getBinaryTreeOrderedByBitMag(Iterator<CartesianGeoRecord> grIter) {
+        TreeSet<CartesianGeoRecord> tree = getBinaryTreeOrderedByBitMag();
         while(grIter.hasNext()){
             tree.add(grIter.next());
         }
@@ -51,13 +51,13 @@ public class GeoUtil implements IGeoUtil {
     }
 
     @Override
-    public TreeSet<GeoRecord> getBinaryTreeOrderedByBitMag() {
-        return new TreeSet<GeoRecord>(new GeoRecordComparator());
+    public TreeSet<CartesianGeoRecord> getBinaryTreeOrderedByBitMag() {
+        return new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
     }
     
     @Override
-    public TreeSet<GeoRecord> getBinaryTreeOrderedByDocId(Iterator<GeoRecord> grtIter) {
-        TreeSet<GeoRecord> tree = new TreeSet<GeoRecord>(new GeoRecordCompareByDocId());
+    public TreeSet<CartesianGeoRecord> getBinaryTreeOrderedByDocId(Iterator<CartesianGeoRecord> grtIter) {
+        TreeSet<CartesianGeoRecord> tree = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordCompareByDocId());
         while(grtIter.hasNext()){
             tree.add(grtIter.next());
         }
@@ -65,7 +65,7 @@ public class GeoUtil implements IGeoUtil {
     }
 
     @Override
-    public Iterator<GeoRecord> getGeoRecordRangeIterator(TreeSet<GeoRecord> tree, GeoRecord minRange, GeoRecord maxRange) {
+    public Iterator<CartesianGeoRecord> getGeoRecordRangeIterator(TreeSet<CartesianGeoRecord> tree, CartesianGeoRecord minRange, CartesianGeoRecord maxRange) {
         return tree.subSet(minRange, maxRange).iterator();
     }
 
@@ -76,7 +76,7 @@ public class GeoUtil implements IGeoUtil {
     
     public static boolean isValidLongitude(Double longitude) {
         return null != longitude 
-        && MINIMUM_LONGITUDE_EXCLUSIVE < longitude 
+        && MINIMUM_LONGITUDE_EXCLUSIVE <= longitude 
         && longitude <= MAXIMUM_LONGITUDE_INCLUSIVE;
     }
     
@@ -85,8 +85,6 @@ public class GeoUtil implements IGeoUtil {
         && MINIMUM_LATITUDE_INCLUSIVE <= latitude
         && latitude <= MAXIMUM_LATITUDE_INCLUSIVE;
     }
-    
-
 }
 
 
