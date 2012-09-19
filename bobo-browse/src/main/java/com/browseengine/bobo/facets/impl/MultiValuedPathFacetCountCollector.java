@@ -23,6 +23,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
+import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
 public class MultiValuedPathFacetCountCollector extends PathFacetCountCollector {
@@ -44,6 +45,6 @@ public class MultiValuedPathFacetCountCollector extends PathFacetCountCollector 
     @Override
     public final void collectAll()
     {
-      _count = _dataCache.freqs;
+      _count = BigIntArray.fromArray(_dataCache.freqs);
     }
 }

@@ -33,6 +33,8 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.data.TermValueList;
+import com.browseengine.bobo.util.BigSegmentedArray;
+import com.browseengine.bobo.util.LazyBigIntArray;
 
 public class BucketFacetCountCollector implements FacetCountCollector
 {
@@ -40,7 +42,7 @@ public class BucketFacetCountCollector implements FacetCountCollector
   private final DefaultFacetCountCollector _subCollector;
   private final FacetSpec _ospec;
   private final Map<String,String[]> _predefinedBuckets;
-  private int[] _collapsedCounts;
+  private BigSegmentedArray _collapsedCounts;
   private TermStringList _bucketValues;
   private final int _numdocs;
   
@@ -65,13 +67,13 @@ public class BucketFacetCountCollector implements FacetCountCollector
     _bucketValues.seal();
   }
   
-  private int[] getCollapsedCounts(){
+  private BigSegmentedArray getCollapsedCounts(){
 	if (_collapsedCounts==null){
-		_collapsedCounts = new int[_bucketValues.size()];
+		_collapsedCounts = new LazyBigIntArray(_bucketValues.size());
 		FacetDataCache dataCache = _subCollector._dataCache;
 		TermValueList<?> subList = dataCache.valArray; 
-		int[] subcounts = _subCollector._count;
-		BitVector indexSet = new BitVector(subcounts.length);
+		BigSegmentedArray subcounts = _subCollector._count;
+		BitVector indexSet = new BitVector(subcounts.size());
 		int c = 0;
 		int i = 0;
 		for (String val : _bucketValues){
@@ -81,7 +83,7 @@ public class BucketFacetCountCollector implements FacetCountCollector
 				for (String subVal : subVals){
 					int index = subList.indexOf(subVal);
 					if (index>0){
-						int subcount = subcounts[index];
+						int subcount = subcounts.get(index);
 						count+=subcount;
 						if (!indexSet.get(index)){
 							indexSet.set(index);
@@ -89,17 +91,17 @@ public class BucketFacetCountCollector implements FacetCountCollector
 						}
 					}
 				}
-				_collapsedCounts[i] = count;
+				_collapsedCounts.add(i, count);
 			}
 			i++;
 		}
-		_collapsedCounts[0] = (_numdocs-c);
+		_collapsedCounts.add(0, (_numdocs-c));
 	}
 	return _collapsedCounts;
   }
   
  // get the total count of all possible elements 
-  public int[] getCountDistribution()
+  public BigSegmentedArray getCountDistribution()
   {
     return getCollapsedCounts();
   }
@@ -117,9 +119,9 @@ public class BucketFacetCountCollector implements FacetCountCollector
     	  return new BrowseFacet(bucketValue,0);
       }
       
-      int[] counts = getCollapsedCounts();
+      BigSegmentedArray counts = getCollapsedCounts();
     
-      return new BrowseFacet(bucketValue,counts[index]);
+      return new BrowseFacet(bucketValue,counts.get(index));
   }
   
   public int getFacetHitsCount(Object value) 
@@ -129,9 +131,9 @@ public class BucketFacetCountCollector implements FacetCountCollector
       return 0;
     }
     
-    int[] counts = getCollapsedCounts();
+    BigSegmentedArray counts = getCollapsedCounts();
   
-    return counts[index];
+    return counts.get(index);
   }
 
   public final void collect(int docid) {
@@ -147,8 +149,8 @@ public class BucketFacetCountCollector implements FacetCountCollector
   public List<BrowseFacet> getFacets() 
   {
 
-	int[] counts = getCollapsedCounts();
-    return DefaultFacetCountCollector.getFacets(_ospec, counts, counts.length, _bucketValues);
+	BigSegmentedArray counts = getCollapsedCounts();
+    return DefaultFacetCountCollector.getFacets(_ospec, counts, counts.size(), _bucketValues);
 
   }
   
@@ -160,8 +162,8 @@ public class BucketFacetCountCollector implements FacetCountCollector
 
   public FacetIterator iterator() 
   {
-	int[] counts = getCollapsedCounts();
-	return new DefaultFacetIterator(_bucketValues, counts, counts.length, true);
+	BigSegmentedArray counts = getCollapsedCounts();
+	return new DefaultFacetIterator(_bucketValues, counts, counts.size(), true);
   }  
 }
 

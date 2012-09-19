@@ -43,6 +43,7 @@ import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
+import com.browseengine.bobo.util.BigIntArray;
 
 public abstract class FacetCountStatisicsGenerator
 {
@@ -108,7 +109,7 @@ public abstract class FacetCountStatisicsGenerator
   
   public FacetCountStatistics generateStatistic(FacetCountCollector countHitCollector,int n)
   {
-    return generateStatistic(countHitCollector.getCountDistribution(),n);
+    return generateStatistic(BigIntArray.toArray(countHitCollector.getCountDistribution()),n);
   } 
   
   public static void main(String[] args) throws Exception
@@ -152,7 +153,7 @@ public abstract class FacetCountStatisicsGenerator
       {
         System.out.println("====================================");
         FacetCountCollector fc = (FacetCountCollector)f;
-        int[] dist = fc.getCountDistribution();
+        int[] dist = BigIntArray.toArray(fc.getCountDistribution());
         if (dist!=null)
         {
           ChiSquaredFacetCountStatisticsGenerator gen = new ChiSquaredFacetCountStatisticsGenerator();

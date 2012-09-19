@@ -34,14 +34,16 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
+import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
+import com.browseengine.bobo.util.LazyBigIntArray;
 
 public class RangeFacetCountCollector implements FacetCountCollector
 {
   private final FacetSpec _ospec;
-  protected int[] _count;
+  protected BigSegmentedArray _count;
   private int _countlength;
   private final BigSegmentedArray _array;
   protected FacetDataCache _dataCache;
@@ -55,7 +57,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
     _name = name;
     _dataCache = dataCache;
     _countlength = _dataCache.freqs.length;
-    _count=new int[_countlength];
+    _count= new LazyBigIntArray(_countlength);
     _array = _dataCache.orderArray;
     _docBase = docBase;
     _ospec=ospec;
@@ -81,12 +83,12 @@ public class RangeFacetCountCollector implements FacetCountCollector
   /**
    * gets distribution of the value arrays. When predefined ranges are available, this returns distribution by predefined ranges.
    */
-  public int[] getCountDistribution()
+  public BigSegmentedArray getCountDistribution()
   {
-    int[] dist;
+    BigSegmentedArray dist;
     if (_predefinedRangeIndexes!=null)
     {
-      dist = new int[_predefinedRangeIndexes.length];
+      dist = new LazyBigIntArray(_predefinedRangeIndexes.length);
       int n=0;
       for (int[] range : _predefinedRangeIndexes)
       {
@@ -96,9 +98,9 @@ public class RangeFacetCountCollector implements FacetCountCollector
         int sum = 0;
         for (int i=start;i<end;++i)
         {
-          sum += _count[i];
+          sum += _count.get(i);
         }
-        dist[n++]=sum;
+        dist.add(n++, sum);
       }
     }
     else
@@ -123,7 +125,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
           int sum=0;
           for (int i=range[0];i<=range[1];++i)
           {
-              sum+=_count[i];
+              sum+=_count.get(i);
           }
           facet = new BrowseFacet(value,sum);
       }
@@ -138,19 +140,20 @@ public class RangeFacetCountCollector implements FacetCountCollector
     {
       for (int i=range[0]; i<=range[1]; ++i)
       {
-          sum += _count[i];
+          sum += _count.get(i);
       }
     }
     return sum; 
   }
 
   public void collect(int docid) {
-      _count[_array.get(docid)]++;
+    int i = _array.get(docid);
+    _count.add(i, _count.get(i) + 1);
   }
   
   public final void collectAll()
   {
-    _count = _dataCache.freqs;
+    _count = BigIntArray.fromArray(_dataCache.freqs);
     _countlength = _dataCache.freqs.length;
   }
   
@@ -223,7 +226,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
           int end = _predefinedRangeIndexes[k][1];
           while(idx <= end)
           {
-            count += _count[idx++];
+            count += _count.get(idx++);
           }
           rangeCount[k] = count;
         }
@@ -259,7 +262,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
 			  int maxNumOfFacets = _ospec.getMaxCount();
 	      if (maxNumOfFacets <= 0 || maxNumOfFacets > _predefinedRangeIndexes.length) maxNumOfFacets = _predefinedRangeIndexes.length;
 	      
-	      int[] rangeCount = new int[_predefinedRangeIndexes.length];
+	      BigSegmentedArray rangeCount = new LazyBigIntArray(_predefinedRangeIndexes.length);
 	     
 	      for (int k=0;k<_predefinedRangeIndexes.length;++k)
         {
@@ -268,9 +271,9 @@ public class RangeFacetCountCollector implements FacetCountCollector
           int end = _predefinedRangeIndexes[k][1];
           while(idx <= end)
           {
-            count += _count[idx++];
+            count += _count.get(idx++);
           }
-          rangeCount[k] = count;
+          rangeCount.add(k, count);
         }
 	      
 	      List<BrowseFacet> facetColl;
@@ -280,9 +283,9 @@ public class RangeFacetCountCollector implements FacetCountCollector
 	        facetColl = new ArrayList<BrowseFacet>(maxNumOfFacets);
 	        for (int k=0;k<_predefinedRangeIndexes.length;++k)
 	        {
-	          if(rangeCount[k] >= minCount)
+	          if(rangeCount.get(k) >= minCount)
 	          {
-	            BrowseFacet choice=new BrowseFacet(_predefinedRanges.get(k), rangeCount[k]);
+	            BrowseFacet choice=new BrowseFacet(_predefinedRanges.get(k), rangeCount.get(k));
 	            facetColl.add(choice);
 	          }
 	          if(facetColl.size() >= maxNumOfFacets) break;
@@ -319,14 +322,14 @@ public class RangeFacetCountCollector implements FacetCountCollector
 	        IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator, maxNumOfFacets, forbidden);
 	        for (int i=0; i<_predefinedRangeIndexes.length; ++i)
 	        {
-	          if (rangeCount[i]>=minCount) 	pq.offer(i);
+	          if (rangeCount.get(i)>=minCount) 	pq.offer(i);
 	        }
 
 	        int val;
 	        facetColl=new LinkedList<BrowseFacet>();
 	        while((val = pq.pollInt()) != forbidden)
 	        {
-	          BrowseFacet facet=new BrowseFacet(_predefinedRanges.get(val),rangeCount[val]);
+	          BrowseFacet facet=new BrowseFacet(_predefinedRanges.get(val),rangeCount.get(val));
 	          ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
 	        }
 	      }
@@ -369,7 +372,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
 
   public FacetIterator iterator() {
 	  if(_predefinedRanges != null) {
-		  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
+		  BigSegmentedArray rangeCounts = new LazyBigIntArray(_predefinedRangeIndexes.length);
           for (int k=0;k<_predefinedRangeIndexes.length;++k)
           {
             int count = 0;
@@ -377,11 +380,11 @@ public class RangeFacetCountCollector implements FacetCountCollector
             int end = _predefinedRangeIndexes[k][1];
             while(idx <= end)
             {
-              count += _count[idx++];
+              count += _count.get(idx++);
             }
-            rangeCounts[k] += count;
+            rangeCounts.add(k, rangeCounts.get(k) + count);
           }
-		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.length, true);
+		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.size(), true);
 	  }
 	  return null;
   }  
