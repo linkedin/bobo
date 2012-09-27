@@ -54,10 +54,8 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.facets.impl.GroupByFacetCountCollector;
-import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
-import com.browseengine.bobo.sort.ReverseDocComparatorSource.ReverseDocComparator.ReverseComparable;
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.ListMerger;
-import com.browseengine.bobo.util.StringArrayComparator;
 
 
 public class SortCollectorImpl extends SortCollector {
@@ -341,8 +339,9 @@ public class SortCollectorImpl extends SortCollector {
       return;
     }
 
-    int[] count = _facetCountCollector.getCountDistribution();
-    for (int c : count) {
+    BigSegmentedArray count = _facetCountCollector.getCountDistribution();
+    for (int i = 0; i < count.size(); i++) {
+      int c = count.get(i);
       if (c > 0)
         ++_totalGroups;
     }

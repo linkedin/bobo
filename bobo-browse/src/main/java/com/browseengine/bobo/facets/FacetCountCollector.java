@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.util.BigSegmentedArray;
 
 /**
  *  Collects facet counts for a given browse request
@@ -51,7 +52,7 @@ public interface FacetCountCollector extends FacetAccessible
 	 * Returns an integer array representing the distribution function of a given facet.
 	 * @return integer array of count values representing distribution of the facet values.
 	 */
-	int[] getCountDistribution();
+	BigSegmentedArray getCountDistribution();
 	
 	/**
 	 * Empty facet list. 
