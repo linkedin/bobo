@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -38,7 +37,6 @@ import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboCustomSortField;
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BoboSubBrowser;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.FacetAccessible;
@@ -133,7 +131,13 @@ public abstract class SortCollector extends Collector {
 
 	protected Collector _collector = null;
 	protected final SortField[] _sortFields;
-	protected final boolean _fetchStoredFields;
+	
+  public SortField[] getSortFields()
+  {
+    return _sortFields;
+  }
+
+  protected final boolean _fetchStoredFields;
   protected boolean _closed = false;
 	
 	protected SortCollector(SortField[] sortFields,boolean fetchStoredFields){
@@ -189,7 +193,7 @@ public abstract class SortCollector extends Collector {
 	    }
 	}
 	
-	private static DocComparatorSource getComparatorSource(Browsable browser,SortField sf){
+	public static DocComparatorSource getComparatorSource(Browsable browser,SortField sf){
 		DocComparatorSource compSource = null;
 		if (SortField.FIELD_DOC.equals(sf)){
 			compSource = new DocIdDocComparatorSource();
@@ -225,7 +229,7 @@ public abstract class SortCollector extends Collector {
 		return compSource;
 	}
 	
-	private static SortField convert(Browsable browser,SortField sort){
+	public static SortField convert(Browsable browser,SortField sort){
 		String field =sort.getField();
 		FacetHandler<?> facetHandler = browser.getFacetHandler(field);
 		if (facetHandler!=null){
@@ -237,6 +241,7 @@ public abstract class SortCollector extends Collector {
 			return sort;
 		}
 	}
+	
 	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields, Set<String> termVectorsToFetch,String[] groupBy, int maxPerGroup, boolean collectDocIdCache){
 		boolean doScoring=forceScoring;
 		if (sort == null || sort.length==0){	
@@ -249,7 +254,6 @@ public abstract class SortCollector extends Collector {
 			sort = new SortField[]{SortField.FIELD_DOC};
 		}
 		
-		Set<String> facetNames = browser.getFacetNames();
 		for (SortField sf : sort){
 			if (sf.getType() == SortField.SCORE) {
 				doScoring= true;
@@ -257,19 +261,7 @@ public abstract class SortCollector extends Collector {
 			}	
 		}
 
-		DocComparatorSource compSource;
-		if (sort.length==1){
-			SortField sf = convert(browser,sort[0]);
-			compSource = getComparatorSource(browser,sf);
-		}
-		else{
-			DocComparatorSource[] compSources = new DocComparatorSource[sort.length];
-			for (int i = 0; i<sort.length;++i){
-				compSources[i]=getComparatorSource(browser,convert(browser,sort[i]));
-			}
-			compSource = new MultiDocIdComparatorSource(compSources);
-		}
-		return new SortCollectorImpl(compSource, sort, browser, offset, count, doScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
+		return new SortCollectorImpl(null, sort, browser, offset, count, doScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
 	}
 	
 	public SortCollector setCollector(Collector collector){
