@@ -540,4 +540,27 @@ public class SortCollectorImpl extends SortCollector {
     }
     return hits;
   }
+
+  public void setComparatorSource(Browsable browser, SortField[] sort)
+  {
+    if (sort.length == 1)
+    {
+      SortField sf = convert(browser,sort[0]);
+      _compSource = getComparatorSource(browser,sf);
+    }
+    else
+    {
+      DocComparatorSource[] compSources = new DocComparatorSource[sort.length];
+      for (int i = 0; i < sort.length; ++ i)
+      {
+        compSources[i] = getComparatorSource(browser,convert(browser,sort[i]));
+      }
+      _compSource = new MultiDocIdComparatorSource(compSources);
+    }
+  }
+
+  public DocComparatorSource getCompSource()
+  {
+    return _compSource;
+  }
 }
