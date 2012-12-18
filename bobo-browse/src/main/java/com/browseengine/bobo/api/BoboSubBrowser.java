@@ -54,6 +54,7 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.search.BoboSearcher2;
 import com.browseengine.bobo.search.FacetHitCollector;
 import com.browseengine.bobo.sort.SortCollector;
+import com.browseengine.bobo.sort.SortCollectorImpl;
 
 /**
  * This class implements the browsing functionality.
@@ -231,28 +232,36 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
       }
       RuntimeFacetHandlerFactory<FacetHandlerInitializerParam,?> factory = (RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, ?>) _runtimeFacetHandlerFactoryMap.get(facetName);
       
-        try
+      try
+      {
+        FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
+        if (data == null)
+          data = FacetHandlerInitializerParam.EMPTY_PARAM;
+        if (data != FacetHandlerInitializerParam.EMPTY_PARAM || !factory.isLoadLazily())
         {
-
-          FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
-          if (data == null)
-            data = FacetHandlerInitializerParam.EMPTY_PARAM;
-          if (data != FacetHandlerInitializerParam.EMPTY_PARAM || !factory.isLoadLazily())
+          RuntimeFacetHandler<?> facetHandler =  factory.get(data);
+          if (facetHandler != null)
           {
-            RuntimeFacetHandler<?> facetHandler =  factory.get(data);
-            if (facetHandler != null)
-            {
-              _runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
-              this.setFacetHandler(facetHandler);
-            }
+            _runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
+            this.setFacetHandler(facetHandler);
           }
         }
-        catch (IOException e)
-        {
-          throw new BrowseException("error trying to set FacetHandler : " + facetName+":"+e.getMessage(),e);
-        }
+      }
+      catch (IOException e)
+      {
+        throw new BrowseException("error trying to set FacetHandler : " + facetName+":"+e.getMessage(),e);
+      }
     }
     // done initialize all RuntimeFacetHandlers with data supplied by user at run-time.
+    
+    if (collector instanceof SortCollectorImpl)
+    {
+      SortCollectorImpl sc = (SortCollectorImpl)collector;
+      if (sc.getCompSource() == null)
+      {
+        sc.setComparatorSource(this, sc.getSortFields());
+      }
+    }
 
     Set<String> fields = getFacetNames();
 
