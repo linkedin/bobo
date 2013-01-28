@@ -1,0 +1,26 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "commons-io:commons-io:1.4"
+    compile "org.hamcrest:hamcrest-library:1.1"
+    compile "commons-lang:commons-lang:2.6"
+    compile "cglib:cglib-nodep:2.2"
+    compile "log4j:log4j:1.2.16"
+    compile "org.apache.lucene:lucene-core:3.5.0"
+    compile "org.objenesis:objenesis:1.0"
+    compile "org.springframework:spring-context:3.0.3.RELEASE"
+
+    testCompile "org.jmock:jmock:2.5.1"
+    testCompile "org.jmock:jmock-junit4:2.5.1"
+    testCompile "org.jmock:jmock-legacy:2.5.1"
+    testCompile "org.springframework:spring-test:3.0.3.RELEASE"
+    testCompile "junit:junit:4.5"
+}
+

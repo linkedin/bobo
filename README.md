@@ -16,3 +16,6 @@ http://data.linkedin.com/opensource/bobo
 Issues are tracked at: 
 
 http://data.linkedin.com/opensource/bobo
+
+TO BUILD:
+./gradlew build
