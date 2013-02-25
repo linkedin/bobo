@@ -19,17 +19,6 @@
 
 package com.browseengine.bobo.facets.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
-
-import org.apache.log4j.Logger;
-
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
@@ -45,62 +34,30 @@ import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.facets.data.TermLongList;
 import com.browseengine.bobo.facets.data.TermShortList;
 import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.jmx.JMXUtil;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 import com.browseengine.bobo.util.LazyBigIntArray;
-import com.browseengine.bobo.util.MemoryManager;
-import com.browseengine.bobo.util.MemoryManagerAdminMBean;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public abstract class DefaultFacetCountCollector implements FacetCountCollector
 {
   private static final Logger log = Logger.getLogger(DefaultFacetCountCollector.class.getName());
-  protected final FacetSpec _ospec;
+
   public BigSegmentedArray _count;
-  
   public int _countlength;
-  protected FacetDataCache _dataCache;
-  private final String _name;
+
+  protected final FacetSpec _ospec;
+  protected final FacetDataCache _dataCache;
   protected final BrowseSelection _sel;
   protected final BigSegmentedArray _array;
-  private int _docBase;
-  protected final LinkedList<BigSegmentedArray> intarraylist = new LinkedList<BigSegmentedArray>();
-  private Iterator _iterator;
+
+  private final String _name;
   private boolean _closed = false;
-
-  protected static MemoryManager<BigSegmentedArray> intarraymgr = new MemoryManager<BigSegmentedArray>(new MemoryManager.Initializer<BigSegmentedArray>()
-  {
-    public void init(BigSegmentedArray buf)
-    {
-      buf.fill(0);
-    }
-
-    public BigSegmentedArray newInstance(int size)
-    {
-      return new LazyBigIntArray(size);
-    }
-
-    public int size(BigSegmentedArray buf)
-    {
-      assert buf != null;
-      return buf.size();
-    }
-
-  });
-  
-  static{
-	  try{
-		// register memory manager mbean
-		MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
-	    ObjectName mbeanName = new ObjectName(JMXUtil.JMX_DOMAIN,"name","DefaultFacetCountCollector-MemoryManager");
-	    StandardMBean mbean = new StandardMBean(intarraymgr.getAdminMBean(), MemoryManagerAdminMBean.class);
-	    mbeanServer.registerMBean(mbean, mbeanName);
-	  }
-	  catch(Exception e){
-	    log.error(e.getMessage(),e);
-	  }
-  }
 
   public DefaultFacetCountCollector(String name,FacetDataCache dataCache,int docBase,
       BrowseSelection sel,FacetSpec ospec)
@@ -109,19 +66,9 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     _ospec = ospec;
     _name = name;
     _dataCache=dataCache;
-    _countlength = _dataCache.freqs.length;
-
-    if (_dataCache.freqs.length <= 3096)
-    {
-      _count = new LazyBigIntArray(_countlength);
-    } else
-    {
-      _count = intarraymgr.get(_countlength);
-      intarraylist.add(_count);
-    }
-
+    _countlength = _dataCache.valArray.size();
+    _count = new LazyBigIntArray(_countlength);
     _array = _dataCache.orderArray;
-    _docBase = docBase;
   }
 
   public String getName()
@@ -270,10 +217,6 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       return;
     }
     _closed = true;
-    while(!intarraylist.isEmpty())
-    {
-      intarraymgr.release(intarraylist.poll());
-    }
   }
 
   /**
