@@ -679,6 +679,39 @@ public final class BigNestedIntArray
     }
     return false;
   }
+
+  public final boolean containsValueInRangeShift(int id, int value, int startValue, int endValue, int shift, int mask)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) return false;
+
+    final int val = page[id & SLOTID_MASK];
+    if (val >= 0)
+    {
+      int shiftedVal = val >> shift;
+      if(shiftedVal >= startValue && shiftedVal < endValue)
+      {
+        if(value < 0 || (val & mask) == value)
+          return true;
+      }
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+      int end = idx + (val & COUNT_MASK);
+      while(idx < end)
+      {
+        int shiftedVal = val >> shift;
+        if(shiftedVal >= startValue && shiftedVal < endValue)
+        {
+          if(value < 0 || (val & mask) == value)
+            return true;
+        }
+        idx++;
+      }
+    }
+    return false;
+  }
   
   public final boolean contains(int id, OpenBitSet values)
   {
@@ -861,6 +894,54 @@ public final class BigNestedIntArray
     
     return DocIdSetIterator.NO_MORE_DOCS;
   }
+
+  public final int findValueInRangeShift(int startValue, int endValue, int value, int shift, int mask, int id, int maxID)
+  {
+    int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null)
+      page = MISSING_PAGE;
+
+    while(true)
+    {
+      int val = page[id & SLOTID_MASK];
+      if (val >= 0)
+      {
+        int shiftedVal = val >> shift;
+        if(shiftedVal >= startValue && shiftedVal < endValue)
+        {
+          if(value < 0 || (val & mask) == value)
+            return id;
+        }
+      }
+      else if(val != MISSING)
+      {
+        int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+        int end = idx + (val & COUNT_MASK);
+        while(idx < end)
+        {
+          val = page[idx++];
+          int shiftedVal = val >> shift;
+          if(shiftedVal >= startValue && shiftedVal < endValue)
+          {
+            if(value < 0 || (val & mask) == value)
+              return id;
+          }
+        }
+      }
+      if(id >= maxID)
+        break;
+
+      if((++id & SLOTID_MASK) == 0)
+      {
+        page = _list[id >> PAGEID_SHIFT];
+        if(page == null)
+          page = MISSING_PAGE;
+      }
+    }
+
+    return DocIdSetIterator.NO_MORE_DOCS;
+  }
+
   public final int count(final int id, final int[] count)
   {
     final int[] page = _list[id >> PAGEID_SHIFT];
@@ -1051,6 +1132,56 @@ public final class BigNestedIntArray
         {
           count.add(value, count.get(value) + 1);
         }
+      }
+      return;
+    }
+    count.add(0, count.get(0) + 1);
+    return;
+  }
+
+  public final void countNoReturnWithRangeShift(final int id, final BigSegmentedArray count,
+                                           int startVal, int endVal, int mask, int shift)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) {
+      count.add(0, count.get(0) + 1);
+      return;
+    }
+
+    int val = page[id & SLOTID_MASK];
+    if(val >= 0)
+    {
+      int shiftedVal = val >> shift;
+      if (shiftedVal >= startVal && shiftedVal < endVal)
+      {
+        val = val & mask;
+        count.add(val, count.get(val) + 1);
+      }
+      return;
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT); // signed shift, remember val is a negative number
+      int cnt = (val & COUNT_MASK);
+      int end = idx + cnt;
+
+      if (idx < end)
+      {
+        int prev = -1;
+        while(idx < end)
+        {
+          int value = page[idx++];
+          int shiftedVal = value >> shift;
+          if (shiftedVal >= startVal && shiftedVal < endVal)
+          {
+            value = value & mask;
+            if (prev != -1 && value != prev)
+              count.add(prev, count.get(prev) + 1);
+            prev = value;
+          }
+        }
+        if (prev != -1)
+          count.add(prev, count.get(prev) + 1);
       }
       return;
     }
