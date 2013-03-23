@@ -685,7 +685,7 @@ public final class BigNestedIntArray
     final int[] page = _list[id >> PAGEID_SHIFT];
     if(page == null) return false;
 
-    final int val = page[id & SLOTID_MASK];
+    int val = page[id & SLOTID_MASK];
     if (val >= 0)
     {
       int shiftedVal = val >> shift;
@@ -701,13 +701,13 @@ public final class BigNestedIntArray
       int end = idx + (val & COUNT_MASK);
       while(idx < end)
       {
+        val = page[idx++];
         int shiftedVal = val >> shift;
         if(shiftedVal >= startValue && shiftedVal < endValue)
         {
           if(value < 0 || (val & mask) == value)
             return true;
         }
-        idx++;
       }
     }
     return false;
