@@ -50,15 +50,17 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   protected int _maxItems = BigNestedIntArray.MAX_ITEMS;
   protected Term _sizePayloadTerm;
   protected Set<String> _depends;
+  protected final int _invertedIndexPenalty;
   
-  public MultiValueFacetHandler(String name, 
-                                String indexFieldName, 
-                                TermListFactory termListFactory, 
+  public MultiValueFacetHandler(String name,
+                                String indexFieldName,
+                                TermListFactory termListFactory,
                                 Term sizePayloadTerm,
-                                Set<String> depends) 
+                                Set<String> depends, int invertedIndexPenalty)
   {
     super(name, depends);
     _depends = depends;
+    _invertedIndexPenalty = invertedIndexPenalty;
     _indexFieldName = (indexFieldName != null ? indexFieldName : name);
     _termListFactory = termListFactory;
     _sizePayloadTerm = sizePayloadTerm;
@@ -71,40 +73,76 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 	  return data.getNumItems(id);
 	}
   
+  public MultiValueFacetHandler(String name, String indexFieldName, TermListFactory termListFactory, Term sizePayloadTerm, int invertedIndexPenalty)
+  {
+    this(name, indexFieldName, termListFactory, sizePayloadTerm, null, invertedIndexPenalty);
+  }
+
+  public MultiValueFacetHandler(String name, TermListFactory termListFactory, Term sizePayloadTerm, int invertedIndexPenalty)
+  {
+    this(name, name, termListFactory, sizePayloadTerm, null, invertedIndexPenalty);
+  }
+
+  public MultiValueFacetHandler(String name, String indexFieldName, TermListFactory termListFactory, int invertedIndexPenalty)
+  {
+    this(name, indexFieldName, termListFactory, null, null, invertedIndexPenalty);
+  }
+
+  public MultiValueFacetHandler(String name, TermListFactory termListFactory, int invertedIndexPenalty)
+  {
+    this(name, name, termListFactory, invertedIndexPenalty);
+  }
+
+  public MultiValueFacetHandler(String name, String indexFieldName, int invertedIndexPenalty)
+  {
+    this(name, indexFieldName, null, invertedIndexPenalty);
+  }
+
+  public MultiValueFacetHandler(String name, int invertedIndexPenalty)
+  {
+    this(name, name, null, invertedIndexPenalty);
+  }
+  
+  public MultiValueFacetHandler(String name, Set<String> depends, int invertedIndexPenalty)
+  {
+    this(name, name, null, null, depends, invertedIndexPenalty);
+  }
+
   public MultiValueFacetHandler(String name, String indexFieldName, TermListFactory termListFactory, Term sizePayloadTerm)
   {
-    this(name, indexFieldName, termListFactory, sizePayloadTerm, null);
+    this(name, indexFieldName, termListFactory, sizePayloadTerm, null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
 
-  public MultiValueFacetHandler(String name, TermListFactory termListFactory, Term sizePayloadTerm) 
+  public MultiValueFacetHandler(String name, TermListFactory termListFactory, Term sizePayloadTerm)
   {
-    this(name, name, termListFactory, sizePayloadTerm, null);
+    this(name, name, termListFactory, sizePayloadTerm, null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
 
-  public MultiValueFacetHandler(String name, String indexFieldName, TermListFactory termListFactory) 
+  public MultiValueFacetHandler(String name, String indexFieldName, TermListFactory termListFactory)
   {
-    this(name, indexFieldName, termListFactory, null, null);
+    this(name, indexFieldName, termListFactory, null, null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
 
   public MultiValueFacetHandler(String name, TermListFactory termListFactory)
   {
-    this(name, name, termListFactory);
+    this(name, name, termListFactory, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
 
   public MultiValueFacetHandler(String name, String indexFieldName)
   {
-    this(name, indexFieldName, null);
+    this(name, indexFieldName, null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
 
   public MultiValueFacetHandler(String name)
   {
-    this(name, name, null);
+    this(name, name, null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
-  
+
   public MultiValueFacetHandler(String name, Set<String> depends)
   {
-    this(name, name, null, null, depends);
+    this(name, name, null, null, depends, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
+
   @Override
   public DocComparatorSource getDocComparatorSource() 
   {
@@ -181,7 +219,8 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException
   {
 	MultiValueFacetFilter f= new MultiValueFacetFilter(new MultiDataCacheBuilder(getName(), _indexFieldName), value);
-    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName(), _indexFieldName), f, new String[]{value}, false);
+    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName(), _indexFieldName), f,
+        new String[]{value}, false, _invertedIndexPenalty);
     return af;
   }
 
@@ -215,7 +254,8 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     {
       MultiValueORFacetFilter f = new MultiValueORFacetFilter(this,vals,false);			// catch the "not" case later
       if (!isNot) {
-	      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName(), _indexFieldName), f, vals, false);
+	      AdaptiveFacetFilter af =
+            new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName(), _indexFieldName), f, vals, false, _invertedIndexPenalty);
 	      return af;
       }
       else{

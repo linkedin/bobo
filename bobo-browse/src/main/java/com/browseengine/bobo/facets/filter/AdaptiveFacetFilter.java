@@ -1,11 +1,13 @@
 package com.browseengine.bobo.facets.filter;
 
 import java.io.IOException;
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.browseengine.bobo.util.*;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
@@ -28,11 +30,14 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	private static final long serialVersionUID = 1L;
 	
 	private static Logger logger = Logger.getLogger(AdaptiveFacetFilter.class);
+
+  public static final int DEFAULT_INVERTED_INDEX_PENALTY = 32;
 	
 	private final RandomAccessFilter _facetFilter;
 	private final FacetDataCacheBuilder _facetDataCacheBuilder;
 	private final Set<String> _valSet;
 	private boolean  _takeComplement = false;
+  private final int _invertedIndexPenalty;
 	
 	public interface FacetDataCacheBuilder{
 		FacetDataCache build(BoboIndexReader reader);
@@ -42,11 +47,16 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	
 	// If takeComplement is true, we still return the filter for NotValues . Therefore, the calling function of this class needs to apply NotFilter on top
 	// of this filter if takeComplement is true.
-	public AdaptiveFacetFilter(FacetDataCacheBuilder facetDataCacheBuilder,RandomAccessFilter facetFilter,String[] val, boolean takeComplement){
+	public AdaptiveFacetFilter(FacetDataCacheBuilder facetDataCacheBuilder,
+                             RandomAccessFilter facetFilter,
+                             String[] val,
+                             boolean takeComplement,
+                             int invertedIndexPenalty) {
 	  _facetFilter = facetFilter;
 	  _facetDataCacheBuilder = facetDataCacheBuilder;
 	  _valSet = new HashSet<String>(Arrays.asList(val));
 	  _takeComplement = takeComplement;
+    _invertedIndexPenalty = invertedIndexPenalty;
 	}
 	
 	 public double getFacetSelectivity(BoboIndexReader reader)
@@ -73,7 +83,7 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	  
 	  
 	  ArrayList<String> validVals = new ArrayList<String>(_valSet.size());
-	  for (String val : _valSet){
+	  for (String val : _valSet) {
 		  int idx = valArray.indexOf(val);
 		  if (idx>=0){
 			  validVals.add(valArray.get(idx));		// get and format the value
@@ -87,14 +97,28 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	  
 	  // takeComplement is only used to choose between TermListRandomAccessDocIdSet and innerDocSet
 	  int validFreqCount = _takeComplement ? (totalCount - freqCount) : freqCount;
-	  
-	  if (_facetDataCacheBuilder.getIndexFieldName() != null && ((validFreqCount<<1) < totalCount)) {
+
+    int invertedIndexCost = estimateInvertedIndexCost(validFreqCount, _valSet.size(), totalCount);
+    int forwardIndexCost = estimateForwardIndexCost(validFreqCount, _valSet.size(), totalCount);
+
+	  if (_facetDataCacheBuilder.getIndexFieldName() != null && invertedIndexCost < forwardIndexCost) {
 	    return new TermListRandomAccessDocIdSet(_facetDataCacheBuilder.getIndexFieldName(), innerDocSet, validVals, reader);
-	  }
-	  else{
+    } else {
 		  return innerDocSet;
 	  }
 	}
+
+  // Merges several streams from lucene
+  private final int estimateInvertedIndexCost(int hitCount, int numQueries, int totalDocs) {
+    int log2 = BitMath.log2Ceiling(numQueries);
+    int numComparisons = Math.max(1, log2);
+    return _invertedIndexPenalty * numComparisons * hitCount;
+  }
+
+  // Implementation checks in a bitset for each doc
+  private final int estimateForwardIndexCost(int hitCount, int numQueries, int totalDocs) {
+    return totalDocs;
+  }
 
 	public static class TermListRandomAccessDocIdSet extends RandomAccessDocIdSet{
 
@@ -102,8 +126,8 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 		private final ArrayList<String> _vals;
 		private final IndexReader _reader;
 		private final String _name;
-		private final static int OR_THRESHOLD = 5;
-		TermListRandomAccessDocIdSet(String name,RandomAccessDocIdSet innerSet,ArrayList<String> vals,IndexReader reader){
+
+    TermListRandomAccessDocIdSet(String name,RandomAccessDocIdSet innerSet,ArrayList<String> vals,IndexReader reader){
 			_name = name;
 			_innerSet = innerSet;
 			_vals = vals;
@@ -174,16 +198,11 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 				return new TermDocIdSet(_reader, _name,_vals.get(0)).iterator();
 			}
 			else{
-				if (_vals.size()<OR_THRESHOLD){
-					ArrayList<DocIdSet> docSetList = new ArrayList<DocIdSet>(_vals.size());
-					for (String val : _vals){
-						docSetList.add(new TermDocIdSet(_reader, _name,val));
-					}
-					return new OrDocIdSet(docSetList).iterator();
-				}
-				else{
-					return _innerSet.iterator();
-				}
+        ArrayList<DocIdSet> docSetList = new ArrayList<DocIdSet>(_vals.size());
+        for (String val : _vals){
+          docSetList.add(new TermDocIdSet(_reader, _name,val));
+        }
+        return new OrDocIdSet(docSetList).iterator();
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 package com.browseengine.bobo.facets.impl;
 
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
@@ -31,10 +32,29 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler
                                    String indexFieldName,
                                    TermListFactory termListFactory,
                                    FacetDataFetcher facetDataFetcher,
+                                   Set<String> dependsOn,
+                                   int invertedIndexPenalty)
+  {
+    super(name, null, termListFactory, dependsOn, invertedIndexPenalty);
+    _facetDataFetcher = facetDataFetcher;
+  }
+
+  public VirtualSimpleFacetHandler(String name,
+                                   String indexFieldName,
+                                   TermListFactory termListFactory,
+                                   FacetDataFetcher facetDataFetcher,
                                    Set<String> dependsOn)
   {
-    super(name, null, termListFactory, dependsOn);
-    _facetDataFetcher = facetDataFetcher;
+    this(name, indexFieldName, termListFactory, facetDataFetcher,
+        dependsOn, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+    public VirtualSimpleFacetHandler(String name,
+                                   TermListFactory termListFactory,
+                                   FacetDataFetcher facetDataFetcher,
+                                   Set<String> dependsOn, int invertedIndexPenalty)
+  {
+    this(name, null, termListFactory, facetDataFetcher, dependsOn, invertedIndexPenalty);
   }
 
   public VirtualSimpleFacetHandler(String name,
@@ -42,10 +62,10 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler
                                    FacetDataFetcher facetDataFetcher,
                                    Set<String> dependsOn)
   {
-    this(name, null, termListFactory, facetDataFetcher, dependsOn);
+    this(name, null, termListFactory, facetDataFetcher, dependsOn, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
   }
 
-  @Override
+    @Override
   public FacetDataCache load(BoboIndexReader reader) throws IOException
   {
     int doc = -1;
