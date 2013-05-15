@@ -247,7 +247,7 @@ public class TermFixedLengthLongArrayList extends TermValueList<long[]>
 
     while(low <= high)
     {
-      mid = (low+high)/2;
+      mid = low + ((high - low) >> 1);
       index = mid * width;
       for (i=0; i<width; ++i, ++index)
       {
@@ -267,13 +267,12 @@ public class TermFixedLengthLongArrayList extends TermValueList<long[]>
   }
 
   @Override
-  public int indexOf(Object o)
-  {
+  public int indexOfWithOffset(Object o, int startingOffset, int endingOffset) {
     if (withDummy)
     {
       if (o instanceof String)
         o = parse((String)o);
-      return binarySearch((long[])o, 1, _elements.length/width - 1);
+      return binarySearch((long[])o, startingOffset, endingOffset/width - 1);
     }
     else
     {

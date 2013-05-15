@@ -93,6 +93,11 @@ public class TermLongList extends TermNumberList<Long>
   @Override
   public int indexOf(Object o)
   {
+    return indexOfWithOffset(o, 0, _elements.length);
+  }
+
+  @Override
+  public int indexOfWithOffset(Object o, int startingOffset, int endingOffset) {
     if (withDummy)
     {
       if (o==null) return -1;
@@ -101,7 +106,7 @@ public class TermLongList extends TermNumberList<Long>
         val = parse((String) o);
       else
         val = (Long)o;
-      return Arrays.binarySearch(_elements, 1, _elements.length, val);
+      return Arrays.binarySearch(_elements, startingOffset, endingOffset, val);
     } else
     {
       long val;
@@ -109,7 +114,7 @@ public class TermLongList extends TermNumberList<Long>
         val = parse((String) o);
       else
         val = (Long)o;
-      return Arrays.binarySearch(_elements, val);
+      return Arrays.binarySearch(_elements, startingOffset, endingOffset, val);
     }
   }
 

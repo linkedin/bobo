@@ -49,16 +49,15 @@ public class TermCharList extends TermValueList<Character> {
   }
 
   @Override
-	public int indexOf(Object o)
-  {
+  public int indexOfWithOffset(Object o, int startingOffset, int endingOffset) {
     char val;
     if (o instanceof String)
       val = parse((String)o);
     else
       val = (Character)o;
-		char[] elements=((CharArrayList)_innerList).elements();
-		return Arrays.binarySearch(elements, val);
-	}
+
+    return Arrays.binarySearch(_elements, startingOffset, endingOffset, val);
+  }
 
   @Override
   public int indexOfWithType(Character val)

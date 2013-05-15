@@ -74,15 +74,14 @@ public class TermDoubleList extends TermNumberList<Double>
   }
 
   @Override
-  public int indexOf(Object o)
-  {
+  public int indexOfWithOffset(Object o, int startingOffset, int endingOffset) {
     double val = parse((String) o);
     if (o instanceof String)
       val = parse((String)o);
     else
       val = (Double)o;
     double[] elements = ((DoubleArrayList) _innerList).elements();
-    return Arrays.binarySearch(elements, val);
+    return Arrays.binarySearch(elements, startingOffset, endingOffset, val);
   }
 
   public int indexOf(double val)
