@@ -56,7 +56,8 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
                                 String indexFieldName,
                                 TermListFactory termListFactory,
                                 Term sizePayloadTerm,
-                                Set<String> depends, int invertedIndexPenalty)
+                                Set<String> depends,
+                                int invertedIndexPenalty)
   {
     super(name, depends);
     _depends = depends;
@@ -65,7 +66,16 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     _termListFactory = termListFactory;
     _sizePayloadTerm = sizePayloadTerm;
   }
-  
+
+  public MultiValueFacetHandler(String name,
+                                String indexFieldName,
+                                TermListFactory termListFactory,
+                                Term sizePayloadTerm,
+                                Set<String> depends)
+  {
+    this(name, indexFieldName, termListFactory, sizePayloadTerm, depends, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
   @Override
 	public int getNumItems(BoboIndexReader reader, int id) {
 	  MultiValueFacetDataCache data = getFacetData(reader);
