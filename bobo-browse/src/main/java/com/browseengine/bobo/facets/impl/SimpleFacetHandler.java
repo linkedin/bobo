@@ -51,8 +51,17 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 	   _termListFactory=termListFactory;
     _invertedIndexPenalty = invertedIndexPenalty;
 	}
-	
-	public SimpleFacetHandler(String name,
+
+  public SimpleFacetHandler(String name,
+                            String indexFieldName,
+                            TermListFactory termListFactory,
+                            Set<String> dependsOn)
+  {
+    this(name, indexFieldName, termListFactory, dependsOn, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+
+  public SimpleFacetHandler(String name,
                             TermListFactory termListFactory,
                             Set<String> dependsOn,
                             int invertedIndexPenalty)
