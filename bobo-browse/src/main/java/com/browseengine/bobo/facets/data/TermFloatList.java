@@ -74,14 +74,15 @@ public class TermFloatList extends TermNumberList<Float>
   }
 
   @Override
-  public int indexOfWithOffset(Object o, int startingOffset, int endingOffset) {
+  public int indexOf(Object o)
+  {
     float val;
     if (o instanceof String)
       val = parse((String) o);
     else
       val = (Float)o;
     float[] elements = ((FloatArrayList) _innerList).elements();
-    return Arrays.binarySearch(elements, startingOffset, endingOffset, val);
+    return Arrays.binarySearch(elements, val);
   }
 
   public int indexOf(float o)

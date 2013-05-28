@@ -104,17 +104,9 @@ public abstract class TermValueList<T> implements List<String>{
 	public Comparable getComparableValue(int index){    
 	  return (Comparable) _innerList.get(index);
   }
-
-	public int indexOf(Object o){
-    return indexOfWithOffset(o, 0, size());
-  }
+	abstract public int indexOf(Object o);
 
   public int indexOfWithOffset(Object value, int offset)
-  {
-    return indexOfWithOffset(value, offset, size());
-  }
-
-  public int indexOfWithOffset(Object value, int startingOffset, int endingOffset)
   {
     throw new IllegalStateException("not supported");
   }

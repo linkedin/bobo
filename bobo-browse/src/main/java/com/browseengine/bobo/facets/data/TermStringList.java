@@ -61,31 +61,28 @@ public class TermStringList extends TermValueList<String> {
 		return (String)o;
 	}
 
-  @Override
-  public int indexOfWithOffset(Object o, int startingOffset, int endingOffset) {
-    if (withDummy)
-    {
-      if (o == null) return -1;
-
-      if (o.equals("")) {
+	@Override
+	public int indexOf(Object o)
+	{
+	  if (withDummy)
+	  {
+	    if (o == null) return -1;
+	   
+	    if (o.equals("")) {
         if (_innerList.size() > 1 && "".equals(_innerList.get(1))) {
           return 1;
         } else if (_innerList.size()  < 2) {
           return -1;
-        }
-      }
-      ArrayList<String> stringList = (ArrayList<String>) _innerList;
-      List<String> sublist = stringList.subList(startingOffset, endingOffset);
-      return Collections.binarySearch(sublist, (String)o);
-    } else
-    {
-      ArrayList<String> stringList = (ArrayList<String>) _innerList;
-      List<String> sublist = stringList.subList(startingOffset, endingOffset);
-      return Collections.binarySearch(sublist, (String)o);
-    }
-  }
+        }        
+      }  
+	    return Collections.binarySearch(((ArrayList<String>)_innerList), (String)o);
+	  } else
+	  {
+      return Collections.binarySearch(((ArrayList<String>)_innerList), (String)o);
+	  }
+	}
 
-  @Override
+	@Override
 	public void seal() {
 		((ArrayList<String>)_innerList).trimToSize();
 	}

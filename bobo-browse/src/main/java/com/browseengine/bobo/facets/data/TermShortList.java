@@ -86,7 +86,8 @@ public class TermShortList extends TermNumberList<Short>
   }
 
   @Override
-  public int indexOfWithOffset(Object o, int startingOffset, int endingOffset) {
+  public int indexOf(Object o)
+  {
     if (withDummy)
     {
       if (o==null) return -1;
@@ -95,7 +96,7 @@ public class TermShortList extends TermNumberList<Short>
         val = parse((String) o);
       else
         val = (Short)o;
-      return Arrays.binarySearch(_elements, startingOffset, endingOffset, val);
+      return Arrays.binarySearch(_elements, 1, _elements.length, val);
     } else
     {
       short val;
@@ -103,10 +104,9 @@ public class TermShortList extends TermNumberList<Short>
         val = parse((String) o);
       else
         val = (Short)o;
-      return Arrays.binarySearch(_elements, startingOffset, endingOffset, val);
+      return Arrays.binarySearch(_elements, val);
     }
   }
-
   public int indexOf(Short val)
   {
     if (withDummy)

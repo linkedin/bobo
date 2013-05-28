@@ -86,6 +86,29 @@ public class TermIntList extends TermNumberList<Integer>
       return TermIntList.VALUE_MISSING;
   }
 
+  @Override
+  public int indexOf(Object o)
+  {
+    if (withDummy)
+    {
+      if (o==null) return -1;
+      int val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Integer)o;
+      return Arrays.binarySearch(_elements, 1, _elements.length, val);
+    } else
+    {
+      int val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Integer)o;
+      return Arrays.binarySearch(_elements, val);
+    }
+  }
+
   public int indexOf(Integer value)
   {
     if (withDummy)
@@ -107,19 +130,19 @@ public class TermIntList extends TermNumberList<Integer>
   }
 
   @Override
-  public int indexOfWithOffset(Object value, int startingOffset, int endingOffset)
+  public int indexOfWithOffset(Object value, int offset)
   {
     if (withDummy)
     {
-      if (value == null)
+      if (value == null || offset >= _elements.length)
         return -1;
       int val = parse(String.valueOf(value));
-      return Arrays.binarySearch(_elements, startingOffset, endingOffset, val);
+      return Arrays.binarySearch(_elements, offset, _elements.length, val);
     }
     else
     {
       int val = parse(String.valueOf(value));
-      return Arrays.binarySearch(_elements, startingOffset, endingOffset, val);
+      return Arrays.binarySearch(_elements, offset, _elements.length, val);
     }
   }
 
