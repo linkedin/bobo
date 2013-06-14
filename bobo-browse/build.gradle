@@ -1,11 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'maven'
-
-sourceCompatibility = 1.6
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     compile externalDependency.luceneCore

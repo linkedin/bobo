@@ -1189,6 +1189,46 @@ public final class BigNestedIntArray
     return;
   }
 
+  public final void countAllWithRangeShift(final BigSegmentedArray count, int startVal, int endVal, int mask, int shift)
+  {
+    int[] page = _list[0];
+
+    int id = 0;
+    while(id < _size)
+    {
+      int val = page[id & SLOTID_MASK];
+      if (val >= 0)
+      {
+        int shiftedVal = val >> shift;
+        if(shiftedVal >= startVal && shiftedVal < endVal)
+        {
+          val = val & mask;
+          count.add(val, count.get(val) + 1);
+        }
+      }
+      else if(val != MISSING)
+      {
+        int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+        int end = idx + (val & COUNT_MASK);
+        while(idx < end)
+        {
+          val = page[idx++];
+          int shiftedVal = val >> shift;
+          if(shiftedVal >= startVal && shiftedVal < endVal)
+          {
+            val = val & mask;
+            count.add(val, count.get(val) + 1);
+          }
+        }
+      }
+
+      if((++id & SLOTID_MASK) == 0)
+      {
+        page = _list[id >> PAGEID_SHIFT];
+      }
+    }
+  }
+
   /**
    * returns the number data items for id
    * @param id
