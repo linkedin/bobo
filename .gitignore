@@ -17,6 +17,8 @@ lib/jetty/
 lib/master
 lib/solr/
 lib/test/
+build/
+out/
 bobo-browse/MANIFEST.MF
 .settings
 TAGS
@@ -24,5 +26,8 @@ TAGS
 cscope.*
 bobo-contrib/target/
 bobo-contrib/MANIFEST.MF
-.gradle
 build
+.gradle/
+*.iml
+*.ipr
+*.iws

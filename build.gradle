@@ -14,10 +14,10 @@ ext.externalDependency = [
   'commonsCollections': 'commons-collections:commons-collections:3.2',
   'kamikaze': 'com.linkedin.kamikaze:kamikaze:3.0.6',
   'springContext': 'org.springframework:spring-context:3.0.7.RELEASE',
-  'log4j':'log4j:log4j:1.2.13',
+  'log4j': 'log4j:log4j:1.2.16',
   'commonsCli': 'commons-cli:commons-cli:1.2',
-  'fastutil': 'fastutil:fastutil:5.0.5',
-  'junit': 'junit:junit:4.5'
+  'fastutil': 'fastutil:fastutil:5.1.5',
+  'junit':'junit:junit:4.7'
 ];
 
 subprojects {
