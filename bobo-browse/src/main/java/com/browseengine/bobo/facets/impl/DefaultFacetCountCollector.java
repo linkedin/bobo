@@ -1,15 +1,23 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+
 package com.browseengine.bobo.facets.impl;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
-
-import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -26,62 +34,30 @@ import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.facets.data.TermLongList;
 import com.browseengine.bobo.facets.data.TermShortList;
 import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.jmx.JMXUtil;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 import com.browseengine.bobo.util.LazyBigIntArray;
-import com.browseengine.bobo.util.MemoryManager;
-import com.browseengine.bobo.util.MemoryManagerAdminMBean;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public abstract class DefaultFacetCountCollector implements FacetCountCollector
 {
   private static final Logger log = Logger.getLogger(DefaultFacetCountCollector.class.getName());
-  protected final FacetSpec _ospec;
+
   public BigSegmentedArray _count;
-  
   public int _countlength;
-  protected FacetDataCache _dataCache;
-  private final String _name;
+
+  protected final FacetSpec _ospec;
+  protected final FacetDataCache _dataCache;
   protected final BrowseSelection _sel;
   protected final BigSegmentedArray _array;
-  private int _docBase;
-  protected final LinkedList<BigSegmentedArray> intarraylist = new LinkedList<BigSegmentedArray>();
-  private Iterator _iterator;
+
+  private final String _name;
   private boolean _closed = false;
-
-  protected static MemoryManager<BigSegmentedArray> intarraymgr = new MemoryManager<BigSegmentedArray>(new MemoryManager.Initializer<BigSegmentedArray>()
-  {
-    public void init(BigSegmentedArray buf)
-    {
-      buf.fill(0);
-    }
-
-    public BigSegmentedArray newInstance(int size)
-    {
-      return new LazyBigIntArray(size);
-    }
-
-    public int size(BigSegmentedArray buf)
-    {
-      assert buf != null;
-      return buf.size();
-    }
-
-  });
-  
-  static{
-	  try{
-		// register memory manager mbean
-		MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
-	    ObjectName mbeanName = new ObjectName(JMXUtil.JMX_DOMAIN,"name","DefaultFacetCountCollector-MemoryManager");
-	    StandardMBean mbean = new StandardMBean(intarraymgr.getAdminMBean(), MemoryManagerAdminMBean.class);
-	    mbeanServer.registerMBean(mbean, mbeanName);
-	  }
-	  catch(Exception e){
-	    log.error(e.getMessage(),e);
-	  }
-  }
 
   public DefaultFacetCountCollector(String name,FacetDataCache dataCache,int docBase,
       BrowseSelection sel,FacetSpec ospec)
@@ -90,19 +66,9 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     _ospec = ospec;
     _name = name;
     _dataCache=dataCache;
-    _countlength = _dataCache.freqs.length;
-
-    if (_dataCache.freqs.length <= 3096)
-    {
-      _count = new LazyBigIntArray(_countlength);
-    } else
-    {
-      _count = intarraymgr.get(_countlength);
-      intarraylist.add(_count);
-    }
-
+    _countlength = _dataCache.valArray.size();
+    _count = new LazyBigIntArray(_countlength);
     _array = _dataCache.orderArray;
-    _docBase = docBase;
   }
 
   public String getName()
@@ -251,10 +217,6 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       return;
     }
     _closed = true;
-    while(!intarraylist.isEmpty())
-    {
-      intarraymgr.release(intarraylist.poll());
-    }
   }
 
   /**

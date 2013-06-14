@@ -1,0 +1,18 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':bobo-browse')
+
+    compile "org.apache.solr:solr-core:3.5.0"
+    compile "org.apache.solr:solr-solrj:3.5.0"
+
+    testCompile "junit:junit:4.5"
+}
+

@@ -1,0 +1,21 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile externalDependency.luceneCore
+    compile externalDependency.commonsCollections
+    compile externalDependency.kamikaze
+    compile externalDependency.springContext
+    compile externalDependency.log4j
+    compile externalDependency.commonsCli
+    compile externalDependency.fastutil
+
+    testCompile externalDependency.junit
+}
+

@@ -9,10 +9,13 @@ Bobo is a faceted search engine written in java.
 
 Wiki is available at: 
 
-http://snaprojects.jira.com/wiki/display/BOBO/Home
+http://data.linkedin.com/opensource/bobo
 
 ### Issues
 
 Issues are tracked at: 
 
-http://snaprojects.jira.com/browse/BOBO
+http://data.linkedin.com/opensource/bobo
+
+TO BUILD:
+./gradlew build

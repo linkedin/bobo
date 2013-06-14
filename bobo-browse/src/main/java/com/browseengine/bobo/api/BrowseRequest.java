@@ -1,5 +1,3 @@
-package com.browseengine.bobo.api;
-
 /**
  * 
  * Bobo Browse Engine - High performance faceted/parametric search implementation 
@@ -26,6 +24,7 @@ package com.browseengine.bobo.api;
  * <or other contact info for bobo-browse; snail mail/email/both>
  */
 
+package com.browseengine.bobo.api;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;

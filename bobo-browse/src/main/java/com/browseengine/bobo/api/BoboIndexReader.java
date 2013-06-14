@@ -579,6 +579,17 @@ public class BoboIndexReader extends FilterIndexReader
                             boolean useSubReaders) throws IOException
   {
     super(useSubReaders ? new MultiReader(createSubReaders(reader, workArea), false) : reader);
+    _runtimeFacetHandlerFactories = facetHandlerFactories;
+    _runtimeFacetHandlerFactoryMap = new HashMap<String,RuntimeFacetHandlerFactory<?,?>>();
+    if (_runtimeFacetHandlerFactories!=null)
+    {
+      for(RuntimeFacetHandlerFactory<?,?> factory : _runtimeFacetHandlerFactories)
+      {
+        _runtimeFacetHandlerFactoryMap.put(factory.getName(), factory);
+      }
+    }
+    _facetHandlers = facetHandlers;
+    _workArea = workArea;
     if(useSubReaders)
     {
       _dir = reader.directory();
@@ -593,23 +604,17 @@ public class BoboIndexReader extends FilterIndexReader
         {
           _subReaders[i]._dir = _dir;
           if(facetHandlers != null) _subReaders[i].setFacetHandlers(facetHandlers);
+          if (facetHandlerFactories != null)
+          {
+            _subReaders[i]._runtimeFacetHandlerFactories = _runtimeFacetHandlerFactories;
+            _subReaders[i]._runtimeFacetHandlerFactoryMap = _runtimeFacetHandlerFactoryMap;
+          }
           _starts[i] = maxDoc;
           maxDoc += _subReaders[i].maxDoc();
         }
         _starts[_subReaders.length] = maxDoc;
       }
     }
-    _runtimeFacetHandlerFactories = facetHandlerFactories;
-    _runtimeFacetHandlerFactoryMap = new HashMap<String,RuntimeFacetHandlerFactory<?,?>>();
-    if (_runtimeFacetHandlerFactories!=null)
-    {
-      for(RuntimeFacetHandlerFactory<?,?> factory : _runtimeFacetHandlerFactories)
-      {
-        _runtimeFacetHandlerFactoryMap.put(factory.getName(), factory);
-      }
-    }
-    _facetHandlers = facetHandlers;
-    _workArea = workArea;
   }
 
   protected void facetInit() throws IOException

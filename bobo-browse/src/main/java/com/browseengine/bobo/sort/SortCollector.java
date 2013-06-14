@@ -1,3 +1,22 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+
 package com.browseengine.bobo.sort;
 
 import java.io.IOException;
@@ -19,7 +38,6 @@ import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboCustomSortField;
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BoboSubBrowser;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.FacetAccessible;
@@ -132,7 +150,13 @@ public abstract class SortCollector extends Collector {
 
 	protected Collector _collector = null;
 	protected final SortField[] _sortFields;
-	protected final boolean _fetchStoredFields;
+	
+  public SortField[] getSortFields()
+  {
+    return _sortFields;
+  }
+
+  protected final boolean _fetchStoredFields;
   protected boolean _closed = false;
 	
 	protected SortCollector(SortField[] sortFields,boolean fetchStoredFields){
@@ -188,7 +212,7 @@ public abstract class SortCollector extends Collector {
 	    }
 	}
 	
-	private static DocComparatorSource getComparatorSource(Browsable browser,SortField sf){
+	public static DocComparatorSource getComparatorSource(Browsable browser,SortField sf){
 		DocComparatorSource compSource = null;
 		if (SortField.FIELD_DOC.equals(sf)){
 			compSource = new DocIdDocComparatorSource();
@@ -224,7 +248,7 @@ public abstract class SortCollector extends Collector {
 		return compSource;
 	}
 	
-	private static SortField convert(Browsable browser,SortField sort){
+	public static SortField convert(Browsable browser,SortField sort){
 		String field =sort.getField();
 		FacetHandler<?> facetHandler = browser.getFacetHandler(field);
 		if (facetHandler!=null){
@@ -236,6 +260,7 @@ public abstract class SortCollector extends Collector {
 			return sort;
 		}
 	}
+	
 	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields, Set<String> termVectorsToFetch,String[] groupBy, int maxPerGroup, boolean collectDocIdCache){
 		boolean doScoring=forceScoring;
 		if (sort == null || sort.length==0){	
@@ -248,7 +273,6 @@ public abstract class SortCollector extends Collector {
 			sort = new SortField[]{SortField.FIELD_DOC};
 		}
 		
-		Set<String> facetNames = browser.getFacetNames();
 		for (SortField sf : sort){
 			if (sf.getType() == SortField.SCORE) {
 				doScoring= true;
@@ -256,19 +280,7 @@ public abstract class SortCollector extends Collector {
 			}	
 		}
 
-		DocComparatorSource compSource;
-		if (sort.length==1){
-			SortField sf = convert(browser,sort[0]);
-			compSource = getComparatorSource(browser,sf);
-		}
-		else{
-			DocComparatorSource[] compSources = new DocComparatorSource[sort.length];
-			for (int i = 0; i<sort.length;++i){
-				compSources[i]=getComparatorSource(browser,convert(browser,sort[i]));
-			}
-			compSource = new MultiDocIdComparatorSource(compSources);
-		}
-		return new SortCollectorImpl(compSource, sort, browser, offset, count, doScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
+		return new SortCollectorImpl(null, sort, browser, offset, count, doScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
 	}
 	
 	public SortCollector setCollector(Collector collector){
