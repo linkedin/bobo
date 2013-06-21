@@ -68,6 +68,12 @@ public class TermLongList extends TermNumberList<Long>
     return ((LongArrayList) _innerList).add(item);
   }
 
+	@Override
+	public boolean addRaw(Object o)
+  {
+		return ((LongArrayList) _innerList).add(((Number)o).longValue());
+	}
+
   @Override
   protected List<?> buildPrimitiveList(int capacity)
   {

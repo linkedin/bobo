@@ -325,6 +325,15 @@ public abstract class FacetHandler<D>
 	 * @return a sort comparator
 	 */
 	abstract public DocComparatorSource getDocComparatorSource();
+
+  /**
+   * Do some necessary cleanup work after load
+   * @param reader
+   */
+  public void cleanup(BoboIndexReader reader)
+  {
+    // do nothing
+  }
 	
 	@Override
 	public Object clone() throws CloneNotSupportedException

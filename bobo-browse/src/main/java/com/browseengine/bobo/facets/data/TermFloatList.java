@@ -62,6 +62,12 @@ public class TermFloatList extends TermNumberList<Float>
     return ((FloatArrayList) _innerList).add(parse(o));
   }
 
+	@Override
+	public boolean addRaw(Object o)
+  {
+		return ((FloatArrayList) _innerList).add(((Number)o).floatValue());
+	}
+
   @Override
   protected List<?> buildPrimitiveList(int capacity)
   {

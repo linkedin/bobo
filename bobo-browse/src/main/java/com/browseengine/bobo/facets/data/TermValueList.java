@@ -70,6 +70,9 @@ public abstract class TermValueList<T> implements List<String>{
 	 */
 	abstract public boolean add(String o);
 
+  // do not accept null values
+	abstract public boolean addRaw(Object o);
+
 	public void add(int index, String element)
 	{
 		throw new IllegalStateException("not supported");

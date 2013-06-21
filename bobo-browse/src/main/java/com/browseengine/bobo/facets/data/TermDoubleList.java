@@ -62,6 +62,12 @@ public class TermDoubleList extends TermNumberList<Double>
     return ((DoubleArrayList) _innerList).add(parse(o));
   }
 
+	@Override
+	public boolean addRaw(Object o)
+  {
+		return ((DoubleArrayList) _innerList).add(((Number)o).doubleValue());
+	}
+
   @Override
   protected List<?> buildPrimitiveList(int capacity)
   {

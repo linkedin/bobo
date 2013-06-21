@@ -45,6 +45,12 @@ public class TermStringList extends TermValueList<String> {
 	}
 
 	@Override
+	public boolean addRaw(Object o)
+  {
+		return add((String)o);
+	}
+
+	@Override
 	protected List<?> buildPrimitiveList(int capacity) {
 	  _type = String.class;
 		if (capacity<0)
