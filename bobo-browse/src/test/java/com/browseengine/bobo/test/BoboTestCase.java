@@ -128,7 +128,6 @@ import com.browseengine.bobo.query.ScoreAdjusterQuery;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
@@ -2606,7 +2605,10 @@ public class BoboTestCase extends TestCase {
 
 	}
 	
-	public void testIndexReaderReopen() throws Exception{
+	/**
+	 * Reopened is not used any more
+	 */
+	public void ntestIndexReaderReopen() throws Exception{
 		Directory idxDir = new RAMDirectory();
 		Document[] docs = buildData();
 		

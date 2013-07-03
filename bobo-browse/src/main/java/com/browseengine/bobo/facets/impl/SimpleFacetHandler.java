@@ -57,40 +57,86 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 	
 	protected TermListFactory _termListFactory;
 	protected final String _indexFieldName;
+  protected final int _invertedIndexPenalty;
 	
-	public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory,Set<String> dependsOn)
+	public SimpleFacetHandler(String name,
+                            String indexFieldName,
+                            TermListFactory termListFactory,
+                            Set<String> dependsOn,
+                            int invertedIndexPenalty)
 	{
 	   super(name,dependsOn);
 	   _indexFieldName=indexFieldName;
 	   _termListFactory=termListFactory;
+    _invertedIndexPenalty = invertedIndexPenalty;
 	}
-	
-	public SimpleFacetHandler(String name,TermListFactory termListFactory,Set<String> dependsOn)
+
+  public SimpleFacetHandler(String name,
+                            String indexFieldName,
+                            TermListFactory termListFactory,
+                            Set<String> dependsOn)
+  {
+    this(name, indexFieldName, termListFactory, dependsOn, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+
+  public SimpleFacetHandler(String name,
+                            TermListFactory termListFactory,
+                            Set<String> dependsOn,
+                            int invertedIndexPenalty)
 	{
-	   this(name,name,termListFactory,dependsOn);
+	   this(name,name,termListFactory,dependsOn, invertedIndexPenalty);
 	}
 	
-	public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory)
+	public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory,int invertedIndexPenalty)
 	{
-	   this(name,indexFieldName,termListFactory,null);
+	   this(name,indexFieldName,termListFactory,null, invertedIndexPenalty);
 	}
 	
-	public SimpleFacetHandler(String name,TermListFactory termListFactory)
+	public SimpleFacetHandler(String name,TermListFactory termListFactory, int invertedIndexPenalty)
     {
-        this(name,name,termListFactory);
+        this(name,name,termListFactory, invertedIndexPenalty);
     }
 	
-	public SimpleFacetHandler(String name)
+	public SimpleFacetHandler(String name, int invertedIndexPenalty)
     {
-        this(name,name,null);
+        this(name,name,null, invertedIndexPenalty);
     }
 	
-	public SimpleFacetHandler(String name,String indexFieldName)
+	public SimpleFacetHandler(String name,String indexFieldName, int invertedIndexPenalty)
 	{
-		this(name,indexFieldName,null);
+		this(name,indexFieldName,null, invertedIndexPenalty);
 	}
-	
-	@Override
+
+  public SimpleFacetHandler(String name,
+                            TermListFactory termListFactory,
+                            Set<String> dependsOn)
+  {
+    this(name,name,termListFactory,dependsOn, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+  public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory)
+  {
+    this(name, indexFieldName, termListFactory,null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+  public SimpleFacetHandler(String name,TermListFactory termListFactory)
+  {
+    this(name, name, termListFactory, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+  public SimpleFacetHandler(String name)
+  {
+    this(name, name, null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+  public SimpleFacetHandler(String name,String indexFieldName)
+  {
+    this(name,indexFieldName, null, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
+  }
+
+
+  @Override
 	public int getNumItems(BoboIndexReader reader, int id) {
 		FacetDataCache data = getFacetData(reader);
 		if (data==null) return 0;
@@ -141,7 +187,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
       return _indexFieldName;
     }
 
-    }, f, new String[]{value}, false);
+    }, f, new String[]{value}, false, _invertedIndexPenalty);
     return af;
   }
 
@@ -183,7 +229,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
         return _indexFieldName;
       }
 
-      }, f, vals, isNot);
+      }, f, vals, isNot, _invertedIndexPenalty);
     }
     else if(vals.length == 1)
     {

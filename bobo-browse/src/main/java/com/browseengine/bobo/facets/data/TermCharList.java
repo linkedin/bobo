@@ -46,6 +46,11 @@ public class TermCharList extends TermValueList<Character> {
 	}
 
 	@Override
+	public boolean addRaw(Object o) {
+		return ((CharArrayList)_innerList).add((char)(Character)o);
+	}
+
+	@Override
 	protected List<?> buildPrimitiveList(int capacity) {
 	  _type = Character.class;
 		return  capacity>0 ? new CharArrayList(capacity) : new CharArrayList();

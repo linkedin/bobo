@@ -69,6 +69,12 @@ public class TermIntList extends TermNumberList<Integer>
     return ((IntArrayList) _innerList).add(item);
   }
 
+	@Override
+	public boolean addRaw(Object o)
+  {
+		return ((IntArrayList) _innerList).add(((Number)o).intValue());
+	}
+
   @Override
   protected List<?> buildPrimitiveList(int capacity)
   {

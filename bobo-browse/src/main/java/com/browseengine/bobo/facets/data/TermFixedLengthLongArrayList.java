@@ -76,13 +76,19 @@ public class TermFixedLengthLongArrayList extends TermValueList<long[]>
   @Override
   public boolean add(String o)
   {
-    int i = 0;
-    long cmp = 0;
-
     if (_innerList.size() == 0 && o!=null) // the first value added is not null
       withDummy = false;
 
-    long[] item = parse(o);
+    return addRaw(parse(o));
+  }
+
+	@Override
+	public boolean addRaw(Object o)
+  {
+    int i = 0;
+    long cmp = 0;
+
+    long[] item = (long[])o;
 
     for(i=0; i<width; ++i)
     {
@@ -112,7 +118,7 @@ public class TermFixedLengthLongArrayList extends TermValueList<long[]>
         sanity[i] = item[i];
 
     return true;
-  }
+	}
 
   @Override
   protected List<?> buildPrimitiveList(int capacity)
