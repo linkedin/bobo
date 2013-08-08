@@ -192,7 +192,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
     if (offset<0 || count<0){
 	  throw new IllegalArgumentException("both offset and count must be > 0: "+offset+"/"+count);
     }
-    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(), offset, count, req.isFetchStoredFields(), req.getTermVectorsToFetch(),false, req.getGroupBy(), req.getMaxPerGroup(), req.getCollectDocIdCache());
+    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(), offset, count, req.isFetchStoredFields(), req.getTermVectorsToFetch(),false, req.getGroupBy(), req.getMaxPerGroup(), req.getCollectDocIdCache(), req.getFacetsToFetch());
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);
@@ -364,11 +364,11 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
   }
 
   public SortCollector getSortCollector(SortField[] sort, Query q,int offset, int count, boolean fetchStoredFields, Set<String> termVectorsToFetch,
-		boolean forceScoring, String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
+		boolean forceScoring, String[] groupBy, int maxPerGroup, boolean collectDocIdCache, Set<String> facetsToFetch) {
 	if (_subBrowsers.length==1){
-		return _subBrowsers[0].getSortCollector(sort, q, offset, count, fetchStoredFields, termVectorsToFetch,forceScoring, groupBy, maxPerGroup, collectDocIdCache);
+		return _subBrowsers[0].getSortCollector(sort, q, offset, count, fetchStoredFields, termVectorsToFetch,forceScoring, groupBy, maxPerGroup, collectDocIdCache, facetsToFetch);
 	}
-    return SortCollector.buildSortCollector(this, q, sort, offset, count, forceScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
+    return SortCollector.buildSortCollector(this, q, sort, offset, count, forceScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache, facetsToFetch);
   }
   
   public void close() throws IOException

@@ -242,7 +242,7 @@ public abstract class SortCollector extends Collector {
 		}
 	}
 	
-	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields, Set<String> termVectorsToFetch,String[] groupBy, int maxPerGroup, boolean collectDocIdCache){
+	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields, Set<String> termVectorsToFetch,String[] groupBy, int maxPerGroup, boolean collectDocIdCache, Set<String> facetsToFetch){
 		boolean doScoring=forceScoring;
 		if (sort == null || sort.length==0){	
 			if (q!=null && !(q instanceof MatchAllDocsQuery)){
@@ -261,7 +261,7 @@ public abstract class SortCollector extends Collector {
 			}	
 		}
 
-		return new SortCollectorImpl(null, sort, browser, offset, count, doScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
+		return new SortCollectorImpl(null, sort, browser, offset, count, doScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache, facetsToFetch);
 	}
 	
 	public SortCollector setCollector(Collector collector){

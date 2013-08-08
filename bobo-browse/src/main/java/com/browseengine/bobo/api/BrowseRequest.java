@@ -85,6 +85,7 @@ public class BrowseRequest implements Serializable{
 	private boolean _collectDocIdCache;
 	private Set<String> _termVectorsToFetch;
 	private BoboMapFunctionWrapper mapReduceWrapper;
+  private Set<String> _facetsToFetch;
 	
 	public Set<String> getTermVectorsToFetch(){
 	  return _termVectorsToFetch;
@@ -93,8 +94,18 @@ public class BrowseRequest implements Serializable{
 	public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
 	  _termVectorsToFetch = termVectorsToFetch;
 	}
-	
-	public boolean isShowExplanation() {
+
+  public Set<String> getFacetsToFetch()
+  {
+    return _facetsToFetch;
+  }
+
+  public void setFacetsToFetch(Set<String> facetsToFetch)
+  {
+    _facetsToFetch = facetsToFetch;
+  }
+
+  public boolean isShowExplanation() {
 		return _showExplanation;
 	}
 

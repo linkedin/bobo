@@ -143,6 +143,7 @@ public class SortCollectorImpl extends SortCollector {
   private int _docIdArrayCursor = 0;
   private int _docIdCacheCapacity = 0;
   private Set<String> _termVectorsToFetch;
+  private Set<String> _facetsToFetch;
 
 
   public SortCollectorImpl(DocComparatorSource compSource,
@@ -155,7 +156,8 @@ public class SortCollectorImpl extends SortCollector {
                            Set<String> termVectorsToFetch,
                            String[] groupBy,
                            int maxPerGroup,
-                           boolean collectDocIdCache) {
+                           boolean collectDocIdCache,
+                           Set<String> facetsToFetch) {
     super(sortFields, fetchStoredFields);
     assert (offset>=0 && count>=0);
     _boboBrowser = boboBrowser;
@@ -170,6 +172,7 @@ public class SortCollectorImpl extends SortCollector {
     _doScoring = doScoring;
     _tmpScoreDoc = new MyScoreDoc();
     _termVectorsToFetch = termVectorsToFetch;
+    _facetsToFetch = facetsToFetch;
     _collectDocIdCache = collectDocIdCache || groupBy != null;
     if (groupBy != null && groupBy.length != 0) {
       List<FacetHandler<?>> groupByList = new ArrayList<FacetHandler<?>>(groupBy.length);
@@ -484,10 +487,18 @@ public class SortCollectorImpl extends SortCollector {
       resList = Collections.EMPTY_LIST;
 
     Map<String,FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
-    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, _termVectorsToFetch,groupBy, _groupAccessibles);
+    return buildHits(
+        resList.toArray(new MyScoreDoc[resList.size()]),
+        _sortFields,
+        facetHandlerMap,
+        _fetchStoredFields,
+        _termVectorsToFetch,
+        groupBy,
+        _groupAccessibles,
+        _facetsToFetch);
   }
 
-  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields, Set<String> termVectorsToFetch, FacetHandler<?> groupBy, CombinedFacetAccessible[] groupAccessibles)
+  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields, Set<String> termVectorsToFetch, FacetHandler<?> groupBy, CombinedFacetAccessible[] groupAccessibles, Set<String> facetsToFetch)
   throws IOException
   {
     BrowseHit[] hits = new BrowseHit[scoreDocs.length];
@@ -517,8 +528,11 @@ public class SortCollectorImpl extends SortCollector {
       Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
       for (FacetHandler<?> facetHandler : facetHandlers)
       {
-          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc));
-          rawMap.put(facetHandler.getName(),facetHandler.getRawFieldValues(reader,fdoc.doc));
+          if (facetsToFetch == null || facetsToFetch.contains(facetHandler.getName()))
+          {
+            map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc));
+            rawMap.put(facetHandler.getName(),facetHandler.getRawFieldValues(reader,fdoc.doc));
+          }
       }
       hit.setFieldValues(map);
       hit.setRawFieldValues(rawMap);
