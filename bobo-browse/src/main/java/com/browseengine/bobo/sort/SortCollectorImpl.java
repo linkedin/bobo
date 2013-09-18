@@ -144,6 +144,8 @@ public class SortCollectorImpl extends SortCollector {
   private int _docIdCacheCapacity = 0;
   private Set<String> _termVectorsToFetch;
   private Set<String> _facetsToFetch;
+  private float _scoreMeaningfulFactor;
+  private boolean _hasScoreMeaningfulFactor;
 
 
   public SortCollectorImpl(DocComparatorSource compSource,
@@ -157,7 +159,8 @@ public class SortCollectorImpl extends SortCollector {
                            String[] groupBy,
                            int maxPerGroup,
                            boolean collectDocIdCache,
-                           Set<String> facetsToFetch) {
+                           Set<String> facetsToFetch,
+                           Integer scoreMeaningfulDigits) {
     super(sortFields, fetchStoredFields);
     assert (offset>=0 && count>=0);
     _boboBrowser = boboBrowser;
@@ -173,6 +176,10 @@ public class SortCollectorImpl extends SortCollector {
     _tmpScoreDoc = new MyScoreDoc();
     _termVectorsToFetch = termVectorsToFetch;
     _facetsToFetch = facetsToFetch;
+    if (scoreMeaningfulDigits != null) {
+      _scoreMeaningfulFactor = (float)Math.pow(10, scoreMeaningfulDigits);
+      _hasScoreMeaningfulFactor = true;
+    }
     _collectDocIdCache = collectDocIdCache || groupBy != null;
     if (groupBy != null && groupBy.length != 0) {
       List<FacetHandler<?>> groupByList = new ArrayList<FacetHandler<?>>(groupBy.length);
@@ -233,7 +240,7 @@ public class SortCollectorImpl extends SortCollector {
         }
 
         if (_count > 0) {
-          final float score = (_doScoring ? _scorer.score() : 0.0f);
+          final float score = score();
 
           if (_collectDocIdCache) {
             if (_totalHits > _docIdCacheCapacity) {
@@ -260,7 +267,7 @@ public class SortCollectorImpl extends SortCollector {
           //_facetCountCollector.collect(doc);
 
         if (_count > 0) {
-          final float score = (_doScoring ? _scorer.score() : 0.0f);
+          final float score = score();
 
           if (_collectDocIdCache) {
             if (_totalHits > _docIdCacheCapacity) {
@@ -314,7 +321,7 @@ public class SortCollectorImpl extends SortCollector {
     }
     else {
       if (_count > 0) {
-        final float score = (_doScoring ? _scorer.score() : 0.0f);
+        final float score = score();
 
         if (_queueFull){
           _tmpScoreDoc.doc = doc;
@@ -336,18 +343,19 @@ public class SortCollectorImpl extends SortCollector {
     if (_collector != null) _collector.collect(doc);
   }
 
-  private void collectTotalGroups() {
-    if (_facetCountCollector instanceof GroupByFacetCountCollector) {
-      _totalGroups += ((GroupByFacetCountCollector)_facetCountCollector).getTotalGroups();
-      return;
-    }
+  private float score() throws IOException {
+    if (! _doScoring)
+      return 0f;
 
-    BigSegmentedArray count = _facetCountCollector.getCountDistribution();
-    for (int i = 0; i < count.size(); i++) {
-      int c = count.get(i);
-      if (c > 0)
-        ++_totalGroups;
-    }
+    float score = _scorer.score();
+    if (! _hasScoreMeaningfulFactor)
+      return score;
+    if (_scoreMeaningfulFactor > 0)
+      return Math.round(score * _scoreMeaningfulFactor) / _scoreMeaningfulFactor;
+    else if (_scoreMeaningfulFactor < 0)
+      return Math.round(score / _scoreMeaningfulFactor) * _scoreMeaningfulFactor;
+    else
+      return Math.round(score);
   }
 
   @Override
@@ -361,8 +369,6 @@ public class SortCollectorImpl extends SortCollector {
         for (int i=0; i<groupByMulti.length; ++i) {
           _facetCountCollectorMulti[i] = groupByMulti[i].getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
         }
-        //if (_facetCountCollector != null)
-          //collectTotalGroups();
         _facetCountCollector = _facetCountCollectorMulti[0];
         if (_facetAccessibleLists != null) {
           for(int i=0; i<groupByMulti.length; ++i) {
@@ -431,11 +437,6 @@ public class SortCollectorImpl extends SortCollector {
 
         Object rawGroupValue = null;
 
-        //if (_facetCountCollector != null)
-        //{
-          //collectTotalGroups();
-          //_facetCountCollector = null;
-        //}
         if (_facetAccessibleLists != null) {
           _groupAccessibles = new CombinedFacetAccessible[_facetAccessibleLists.length];
           for (int i=0; i<_facetAccessibleLists.length; ++i)
