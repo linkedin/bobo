@@ -73,7 +73,7 @@ public interface Browsable extends Searchable
 	
 	int numDocs();
 	
-	SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,Set<String> termVectorsToFetch,boolean forceScoring, String[] groupBy, int maxPerGroup, boolean collectDocIdCache);
+	SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,Set<String> termVectorsToFetch,boolean forceScoring, String[] groupBy, int maxPerGroup, boolean collectDocIdCache, Set<String> facetsToFetch, Integer scoreMeaningfulDigits);
 	
 	Explanation explain(Query q, int docid) throws IOException;
 }
