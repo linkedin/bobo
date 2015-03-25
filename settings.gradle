@@ -1,6 +1,5 @@
 include "bobo-browse"
 include "bobo-contrib"
-include "bobo-solr"
 
 // only here for the eclipse plugin to generate project files when running mint eclipse
 include "bin"
